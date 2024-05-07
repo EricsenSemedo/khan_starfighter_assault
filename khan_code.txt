@@ -1,0 +1,356 @@
+// ------------------------------------------------ Button Class
+var Button = function(config) {
+    this.x = config.x || 0;
+    this.y = config.y || 0;
+    this.width = config.width || 150;
+    this.height = config.height || 50;
+    this.label = config.label || "Click";
+    this.onClick = config.onClick || function() {};
+};
+
+// Draw the button on the canvas
+Button.prototype.draw = function() {
+    fill(251, 255, 0); // yellow
+    rect(this.x, this.y, this.width, this.height, 5);
+    fill(0, 0, 0);
+    textSize(19);
+    textAlign(CENTER, BOTTOM);
+    text(this.label, this.x, this.y, this.width, this.height);
+};
+
+// Check if the mouse is inside the button
+Button.prototype.isMouseInside = function() {
+    return mouseX > this.x &&
+           mouseX < (this.x + this.width) &&
+           mouseY > this.y &&
+           mouseY < (this.y + this.height);
+};
+
+// Handle mouse click on the button
+Button.prototype.handleMouseClick = function() {
+    if (this.isMouseInside()) {
+        this.onClick();
+    }
+};
+
+// ------------------------------------------------ bitmoji construction
+var drawBitmojiHead = function(bitmojiHeight, bitmojiX, bitmojiY){
+    // Hair
+    fill(251, 255, 0); // Hair color
+    ellipse(bitmojiX, bitmojiY + (bitmojiHeight/100*10), bitmojiHeight, bitmojiHeight);
+    
+    // Head
+    fill(219, 179, 109); // Skin color
+    ellipse(bitmojiX, bitmojiY + (bitmojiHeight/100*30), bitmojiHeight/100*83, bitmojiHeight);
+    
+    // Eyes
+    fill(71, 51, 18); // Eye color
+    ellipse(bitmojiX - (bitmojiHeight/100*15), bitmojiY + (bitmojiHeight/100*30), bitmojiHeight/100*6, bitmojiHeight/100*6); // Left eye
+    ellipse(bitmojiX + (bitmojiHeight/100*15), bitmojiY + (bitmojiHeight/100*30), bitmojiHeight/100*6, bitmojiHeight/100*6); // Right eye
+    
+    // Nose
+    stroke(0, 0, 0);
+    fill(219, 179, 109); // Skin color for nose
+    bezier(bitmojiX, bitmojiY + (bitmojiHeight/100*30), bitmojiX, bitmojiY + (bitmojiHeight/100*60), bitmojiX + (bitmojiHeight/100*10), bitmojiY + (bitmojiHeight/100*60), bitmojiX, bitmojiY + (bitmojiHeight/100*60));
+    
+    // Mouth
+    noFill();
+    arc(bitmojiX, bitmojiY + (bitmojiHeight/100*60), bitmojiHeight/100*30, bitmojiHeight/100*10, 0, 180);
+};
+
+var drawBitmojiBody = function(bitmojiHeight, bitmojiX, bitmojiY){
+    // Shirt
+    var name = "ES";
+    fill(251, 255, 0); // Shirt color
+    quad(bitmojiX - (bitmojiHeight/100*50), bitmojiY + (bitmojiHeight/100*60), bitmojiX + (bitmojiHeight/100*50), bitmojiY + (bitmojiHeight/100*60), bitmojiX + (bitmojiHeight/100*50), bitmojiY + (bitmojiHeight/100*140), bitmojiX - (bitmojiHeight/100*50), bitmojiY + (bitmojiHeight/100*140));
+    
+    // Name text on shirt
+    textAlign(LEFT, TOP);
+    textSize(bitmojiHeight/100*30);
+    fill(0, 0, 0); // Text color
+    text(name, bitmojiX - (bitmojiHeight/100*20), bitmojiY + (bitmojiHeight/100*90));
+};
+
+var Bitmoji = function(config){
+    this.height = config.height || 100;
+    this.x = config.x || 100;
+    this.y = config.y || 100;
+};
+
+Bitmoji.prototype.draw = function(x, y) {
+    noStroke();
+    this.x = x || this.x;
+    this.y = y || this.y;
+    drawBitmojiBody(this.height, this.x, this.y);
+    drawBitmojiHead(this.height, this.x, this.y);
+};
+
+Bitmoji.prototype.isMouseInside = function() {
+    return mouseX > this.x - (this.height / 2) &&
+           mouseX < (this.x + (this.height / 2)) &&
+           mouseY > this.y - (this.height / 2) &&
+           mouseY < (this.y + this.height + 20);
+};
+
+Bitmoji.prototype.handleMouseClick = function() {
+    if (this.isMouseInside()) {
+        this.onClick();
+    }
+};
+
+// ----------------------------------------------- Lazer Class
+var Lazer = function(config) {
+    this.x = config.x;
+    this.y = config.y;
+    this.width = 20;
+    this.speed = 5;
+    this.moveDirection = config.moveDirection || "right";
+    this.toBeDeleted = false;
+};
+
+Lazer.prototype.draw = function () {
+    stroke(255,0,0);
+    line(this.x, this.y, this.x + this.width, this.y);
+};
+
+Lazer.prototype.move = function() {
+    if (this.moveDirection === "right") {
+        this.x += this.speed;
+    }
+    else if (this.moveDirection === "left") {
+        this.x -= this.speed;
+    }
+};
+
+Lazer.prototype.checkForCollision = function(object) {
+    var colliding = false;
+    var isLeftEdgeUnder = this.x <= object.x + object.width;
+    var isRightEdgeOver = this.x + this.width >= object.x;
+    var isTopEdgeUnder = this.y <= object.y + object.height;
+    var isBottomEdgeOver = this.y >= object.y;
+
+    if (isLeftEdgeUnder && isRightEdgeOver && isTopEdgeUnder && isBottomEdgeOver) {
+            colliding = true;
+        }
+    
+    return colliding;
+};
+
+// ----------------------------------------------- Ship Class
+var Ship = function(config) {
+    this.x = config.x || 0;
+    this.y = config.y || 180;
+    this.width = config.width || 50;
+    this.height = config.height || 50;
+    this.speed = config.speed || 5;
+    this.shipImage = config.shipImage || getImage("space/rocketship");
+    this.debounce = 500; // milliseconds (half a second)
+};
+
+Ship.prototype.draw = function() {
+    image(this.shipImage, this.x, this.y, this.width, this.height);
+};
+
+Ship.prototype.move = function(direction) {
+    if(direction === "down" && (this.y + this.speed) <= 350) {
+        this.y += this.speed;
+    }
+    else if(direction === "up" && (this.y - this.speed) >= 0) {
+        this.y -= this.speed;
+    }
+    else if(direction === "right") {
+        this.x += this.speed;
+    }
+    else if(direction === "left") {
+        this.x -= this.speed;
+    }
+};
+
+Ship.prototype.shoot = function() {
+    var newLazer = new Lazer({
+        x: this.x + this.width,
+        y: this.y + this.height / 1.6,
+    });
+    
+    newLazer.draw();
+    
+    return newLazer;
+};
+
+Ship.prototype.checkForCollision = function(object) {
+    var colliding = false;
+    var isLeftEdgeUnder = this.x <= object.x + object.width;
+    var isRightEdgeOver = this.x + this.width >= object.x;
+    var isTopEdgeUnder = this.y <= object.y + object.height;
+    var isBottomEdgeOver = this.y + this.height >= object.y;
+
+    if (isLeftEdgeUnder && isRightEdgeOver && isTopEdgeUnder && isBottomEdgeOver) {
+            colliding = true;
+        }
+    
+    return colliding;
+};
+
+// -------------------------------------------- After class decleration
+frameRate(30);
+var screen = 1;
+var userLazers = [];
+var enemies = [];
+var time = millis(); // used to keep track of the time elapsed after spawning an enemy
+var points = 0;
+
+var myBitmoji = new Bitmoji({
+    height: 40,
+    x: 40,
+    y: 320
+});
+var playButton = new Button({
+    x: 130,
+    y: 200,
+    label: "Play",
+    onClick: function() {
+        screen = 2;
+    }
+});
+var userShip = new Ship({});
+
+var mouseClicked = function(){
+    if (screen === 1){
+        playButton.handleMouseClick();
+    }
+};
+
+var spawnEnemy = function() {
+    var randomY = round(random(0, 350));
+    var randomSpeed = round(random(5, 7));
+    var enemy = new Ship({
+        x: 450,
+        y: randomY,
+        speed: randomSpeed,
+        shipImage: getImage("space/octopus")
+    });
+    
+    enemies.push(enemy);
+};
+
+var drawHomeScreen = function() {
+    background(0, 0, 0);
+    playButton.draw();
+
+    var title = "Starfighter Assault";
+    var titleX = 80;
+    var titleY = 80;
+    fill(251, 255, 0); // yellow
+    textSize(30);
+    textAlign(LEFT, TOP);
+    // Creates text stroke effect
+    text(title, titleX, titleY - 2);
+    text(title, titleX, titleY + 1);
+    text(title, titleX + 1, titleY);
+    text(title, titleX - 1, titleY);
+    
+    fill(0, 0, 0); // black255, 0, 0);
+    text(title, titleX, titleY);
+    
+    myBitmoji.draw();
+};
+
+var drawPoints = function() {
+    var pointsText = "Points: " + points;
+    fill(251, 255, 0);
+    textAlign(LEFT, TOP);
+    text(pointsText, 0,0);
+};
+
+var drawPlayingScreen = function() {
+    background(0,0,0);
+    userShip.draw();
+    drawPoints();
+    
+    if (keyIsPressed) {
+        if (key.toString() === 'w') {
+            userShip.move("up");
+        } 
+        if (key.toString() === 's') {
+            userShip.move("down");
+        }
+        if (key.toString() === ' '){
+            var lazer = userShip.shoot();
+            userLazers.push(lazer);
+        }
+    }
+    
+    // moves each lazer that the user fires
+    for (var i = 0; i < userLazers.length; i++) {
+        userLazers[i].draw();
+        userLazers[i].move();
+        
+        // deletes the lazer that is off screen
+        if (userLazers[i].x >= 450) {
+            userLazers.splice(i, 1);
+            break;
+        }
+        
+        for (var j = 0; j < enemies.length; j++) {
+            var collided = userLazers[i].checkForCollision(enemies[j]);
+            
+            if (collided) {
+                enemies.splice(j, 1);
+                userLazers.splice(i, 1);
+                points += 100;
+                break;
+            }
+        }
+    }
+    
+    // creates a maximum of 6 enemies at any time, has a spawn cooldown of 1 second (1000 milliseconds)
+    if (enemies.length < 6 && (millis() - time) >= 1000) {
+        time = millis();
+        spawnEnemy();
+    }
+    
+    // loops through each enemy
+    for (var i = 0; i < enemies.length; i++) {
+        enemies[i].move("left");
+        enemies[i].draw();
+        
+        // moves the enemy back to the other side of the screen
+        if (enemies[i].x <= -50) {
+            enemies[i].x = 450;
+            enemies[i].y = round(random(0, 350));
+        }
+        else {
+            var collided = enemies[i].checkForCollision(userShip);
+            if (collided) {
+                screen = 3;
+            }
+        }
+    }
+};
+
+var drawGameOverScreen = function() {
+    var gameOverText = "GAME OVER!!!";
+    
+    background(0, 0, 0);
+    fill(251, 255, 0);
+    textSize(30);
+    text(gameOverText, 100, 100);
+    drawPoints();
+};
+
+var drawHowToPlayScreen = function() {
+    background(0, 0, 0);
+};
+
+var draw = function() {
+    if (screen === 1) {
+        drawHomeScreen();
+    }
+    else if (screen === 2) {
+        drawPlayingScreen();
+    } 
+    else if (screen === 3) {
+        drawGameOverScreen();
+    }
+};
+
