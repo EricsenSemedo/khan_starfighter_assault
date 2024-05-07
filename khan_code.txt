@@ -85,19 +85,6 @@ Bitmoji.prototype.draw = function(x, y) {
     drawBitmojiHead(this.height, this.x, this.y);
 };
 
-Bitmoji.prototype.isMouseInside = function() {
-    return mouseX > this.x - (this.height / 2) &&
-           mouseX < (this.x + (this.height / 2)) &&
-           mouseY > this.y - (this.height / 2) &&
-           mouseY < (this.y + this.height + 20);
-};
-
-Bitmoji.prototype.handleMouseClick = function() {
-    if (this.isMouseInside()) {
-        this.onClick();
-    }
-};
-
 // ----------------------------------------------- Lazer Class
 var Lazer = function(config) {
     this.x = config.x;
@@ -105,7 +92,6 @@ var Lazer = function(config) {
     this.width = 20;
     this.speed = 5;
     this.moveDirection = config.moveDirection || "right";
-    this.toBeDeleted = false;
 };
 
 Lazer.prototype.draw = function () {
